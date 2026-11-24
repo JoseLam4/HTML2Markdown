@@ -1,0 +1,14 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+build/
+
+# Java bytecode
+*.class
+
+# Archivos de salida generados (excluir output salvo ejemplos documentados)
+output/*
+!output/articulo.md
+test_output/
+*.tmp
