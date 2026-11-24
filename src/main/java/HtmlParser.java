@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Analizador HTML basado en {@link ParserDelegator} y {@link HTMLEditorKit.ParserCallback}
@@ -21,6 +22,13 @@ import java.util.Set;
  * preservar la jerarquía y separar el análisis de la conversión a Markdown.
  */
 public class HtmlParser {
+
+    // Limpieza complementaria para bloques script/style/noscript que ParserDelegator (HTML 3.2)
+    // puede malinterpretar si aparecen dentro de <body> o contienen símbolos '<' / '>'.
+    private static final Pattern PATRON_BLOQUES_EXCLUIDOS = Pattern.compile(
+            "<(script|style|noscript)\\b[^>]*>[\\s\\S]*?</\\1\\s*>",
+            Pattern.CASE_INSENSITIVE
+    );
 
     private static final Set<String> ETIQUETAS_EXCLUIDAS = Set.of(
             "head", "title", "script", "style", "noscript", "template"
@@ -87,6 +95,8 @@ public class HtmlParser {
         if (html == null || html.isBlank()) {
             return raiz;
         }
+
+        String htmlDepurado = PATRON_BLOQUES_EXCLUIDOS.matcher(html).replaceAll("");
 
         Deque<HtmlNode> pilaElementos = new ArrayDeque<>();
         pilaElementos.push(raiz);
@@ -174,7 +184,7 @@ public class HtmlParser {
         };
 
         ParserDelegator delegator = new ParserDelegator();
-        delegator.parse(new StringReader(html), callback, true);
+        delegator.parse(new StringReader(htmlDepurado), callback, true);
         return raiz;
     }
 
